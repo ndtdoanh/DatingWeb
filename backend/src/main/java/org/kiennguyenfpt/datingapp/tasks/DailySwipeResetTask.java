@@ -1,9 +1,9 @@
 package org.kiennguyenfpt.datingapp.tasks; // Thay đổi package nếu cần
 
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.kiennguyenfpt.datingapp.entities.User;
 import org.kiennguyenfpt.datingapp.repositories.UserRepository;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -17,17 +17,15 @@ public class DailySwipeResetTask {
         this.userRepository = userRepository;
     }
 
-//    @Scheduled(cron = "0 0 0 * * ?") // Reset vào 0h mỗi ngày
-      @Scheduled(cron = "10 * * * * ?")
+    @Scheduled(cron = "0 0 0 * * ?") // Reset vào 0h mỗi ngày
     public void resetDailySwipeCount() {
         System.out.println("Resetting daily swipe count...");
         List<User> users = userRepository.findAll();
-        for (User user : users) {
-            if (!user.getLastSwipeReset().isEqual(LocalDate.now())) {
-                user.setDailySwipeCount(0);
-                user.setLastSwipeReset(LocalDate.now());
-                userRepository.save(user);
-            }
-        }
+        users.forEach(user -> {
+            user.setDailySwipeCount(0);
+            // Lấy ngày hiện tại + 1
+            user.setLastSwipeReset(LocalDate.now().plusDays(1));
+        });
+        userRepository.saveAll(users);
     }
 }
