@@ -36,7 +36,7 @@
           </div>
         </div>
         <br/> <br/> <br/> <br/> 
-        <button class="outer-border" @click="navigateToLikeByPage">
+        <button class="outer-border" @click="showLikedByModal = true">
           <div class="animated-text">Who's Like?</div>
         </button>
       </aside>
@@ -154,6 +154,12 @@
           </div>
         </div>
       </div>
+       <!-- LikedBy Modal -->
+       <div v-if="showLikedByModal" class="modal-overlay" @click="closeLikedByModal">
+        <div class="modal-content" @click.stop>
+          <likedBy @close="closeLikedByModal" />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -163,9 +169,14 @@ import LoveBellSidebar from "@/views/sidebar/LoveBellSidebar.vue";
 import { getMatchesForUser } from "@/services/match-service";
 import { loadRandomProfile } from "@/services/profile-service";
 import { swipeAction } from "@/services/swipe-service";
+import likedBy from "@/views/LikedBy.vue";
 
 export default {
   name: "App",
+  components: {
+    LoveBellSidebar,
+    likedBy,
+  },
   data() {
     return {
       currentProfileVisible: true,
@@ -181,11 +192,11 @@ export default {
       profileImageUrl: null, // Thêm biến này để lưu URL của ảnh profile
       showInfo: false, // Biến để kiểm soát hiển thị modal
       currentPhotoIndex: 0, 
+      showLikedByModal: false,
+      
     };
   },
-  components: {
-    LoveBellSidebar,
-  },
+  
   methods: {
     async loadMatches() {
       try {
@@ -200,7 +211,6 @@ export default {
     async loadProfiles() {
       try {
         const profileData = await loadRandomProfile();
-        console.log("Profiles loaded:", profileData);
 
         if (profileData.length > 0) {
           this.profiles = [...profileData]; // Use the spread operator to ensure a new array is created
@@ -362,9 +372,9 @@ export default {
         return url;
       }
     },
-    navigateToLikeByPage() {
-    this.$router.push('/likedBy'); // Navigate to /likeBy route
-  },
+    closeLikedByModal() {
+      this.showLikedByModal = false;
+    },
     
     getRandomDistance() {
       return Math.floor(Math.random() * 10) + 1;
@@ -378,6 +388,27 @@ export default {
 </script>
 
 <style scoped>
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 80%;
+  height: 90vh;
+  overflow-y: auto;
+}
 /* Main Layout */
 .outer-border {
   display: inline-block;
