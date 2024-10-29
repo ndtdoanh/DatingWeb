@@ -3,6 +3,7 @@ package org.kiennguyenfpt.datingapp.services.impl;
 import org.kiennguyenfpt.datingapp.dtos.requests.UpdateProfileRequest;
 import org.kiennguyenfpt.datingapp.dtos.responses.AdminUserResponse;
 import org.kiennguyenfpt.datingapp.dtos.responses.NearlyUserResponse;
+import org.kiennguyenfpt.datingapp.entities.Payment;
 import org.kiennguyenfpt.datingapp.entities.Photo;
 import org.kiennguyenfpt.datingapp.entities.Profile;
 import org.kiennguyenfpt.datingapp.entities.SubscriptionPlan;
@@ -11,6 +12,7 @@ import org.kiennguyenfpt.datingapp.entities.UserLocation;
 import org.kiennguyenfpt.datingapp.entities.UserSubscription;
 import org.kiennguyenfpt.datingapp.enums.SubscriptionPlanType;
 import org.kiennguyenfpt.datingapp.enums.SubscriptionStatus;
+import org.kiennguyenfpt.datingapp.repositories.PaymentRepository;
 import org.kiennguyenfpt.datingapp.repositories.SubscriptionPlanRepository;
 import org.kiennguyenfpt.datingapp.repositories.UserRepository;
 import org.kiennguyenfpt.datingapp.repositories.UserSubscriptionRepository;
@@ -25,6 +27,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -39,16 +42,20 @@ public class UserServiceImpl implements UserService {
 
     private final PhotoService photoService;
 
+    private final PaymentRepository paymentRepository;
+
     public UserServiceImpl(
-            UserRepository userRepository,
-            PhotoService photoService,
-            UserSubscriptionRepository userSubscriptionRepository,
-            SubscriptionPlanRepository subscriptionPlanRepository
+            final UserRepository userRepository,
+            final PhotoService photoService,
+            final UserSubscriptionRepository userSubscriptionRepository,
+            final SubscriptionPlanRepository subscriptionPlanRepository,
+            final PaymentRepository paymentRepository
     ) {
         this.userRepository = userRepository;
         this.photoService = photoService;
         this.userSubscriptionRepository = userSubscriptionRepository;
         this.subscriptionPlanRepository = subscriptionPlanRepository;
+        this.paymentRepository = paymentRepository;
     }
 
     @Override
@@ -118,7 +125,15 @@ public class UserServiceImpl implements UserService {
         } else if (SubscriptionPlanType.FREE.value() == planId) {
             newSubscription.setEndDate(null); // Không có end_date nếu planId là 1
         }
+        if (SubscriptionPlanType.FREE.value() != planId) {
+            Payment payment = new Payment();
+            payment.setUser(userRepository.getOne(userId));
+            payment.setDate(startDate);
 
+            Optional<SubscriptionPlan> optional = subscriptionPlanRepository.findById(planId);
+            optional.ifPresent(plan -> payment.setAmount(plan.getPrice()));
+            paymentRepository.save(payment);
+        }
         // 6. Lưu bản ghi mới xuống cơ sở dữ liệu
         userSubscriptionRepository.save(newSubscription);
     }

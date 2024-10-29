@@ -1,14 +1,16 @@
 <template>
   <div>
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div
+      style="display: flex; justify-content: space-between; align-items: center"
+    >
       <h1>Manage Payments</h1>
 
       <!-- Search bar -->
       <el-input
-          v-model="searchQuery"
-          placeholder="Search by Email or Payment Details"
-          style="width: 300px;"
-          @input="filterPayments"
+        v-model="searchQuery"
+        placeholder="Search by Email or Payment Details"
+        style="width: 300px"
+        @input="filterPayments"
       >
         <template #prepend>
           <el-button :icon="Search" />
@@ -18,22 +20,22 @@
 
     <table>
       <thead>
-      <tr>
-        <th>Payment ID</th>
-        <th>Email</th>
-        <th>Amount</th>
-        <th>Date</th>
-        <th>Address</th>
-      </tr>
+        <tr>
+          <th>Payment ID</th>
+          <th>Email</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Address</th>
+        </tr>
       </thead>
       <tbody>
-      <tr v-for="payment in filteredPayments" :key="payment.paymentId">
-        <td>{{ payment.paymentId }}</td>
-        <td>{{ payment.email }}</td>
-        <td>{{ formatCurrency(payment.amount) }}</td>
-        <td>{{ formatDate(payment.date) }}</td>
-        <td>{{ payment.address }}</td>
-      </tr>
+        <tr v-for="payment in filteredPayments" :key="payment.paymentId">
+          <td>{{ payment.paymentId }}</td>
+          <td>{{ payment.email }}</td>
+          <td>{{ formatCurrency(payment.amount) }}</td>
+          <td>{{ formatDate(payment.date) }}</td>
+          <td>{{ payment.address != null ? payment.address : '-' }}</td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -42,9 +44,7 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue';
 import { ElMessage } from 'element-plus';
-import {
-  getAllPayments,
-} from '@/services/admin/admin-payment-service';
+import { getAllPayments } from '@/services/admin/admin-payment-service';
 import { Search } from '@element-plus/icons-vue';
 import { format } from 'date-fns';
 
@@ -54,7 +54,8 @@ const searchQuery = ref('');
 // Filter payments based on search query
 const filteredPayments = computed(() => {
   const query = searchQuery.value.toLowerCase();
-  return payments.value.filter(payment =>
+  return payments.value.filter(
+    (payment) =>
       payment.amount.toString().includes(query) ||
       payment.date.toLowerCase().includes(query)
   );
