@@ -72,23 +72,56 @@
         <!-- Pricing Row -->
         <div></div>
         <template v-for="(plan, index) in subscriptionPlans" :key="index">
-          <!-- Add explicit binding of classes to ensure "in-use-button" applies correctly -->
-          <button
-            :class="[
-              'price-button',
-              plan.buttonClass,
-              isCurrentPlan(plan.id) ? 'in-use-button' : '',
-            ]"
-          >
-            {{
-              isCurrentPlan(plan.id)
-                ? "Đang sử dụng"
-                : `${formatPrice(plan.price)} đ`
-            }}
-          </button>
-        </template>
+  <button
+    :class="['price-button', plan.buttonClass, isCurrentPlan(plan.id) ? 'in-use-button' : '']"
+    @click="!isCurrentPlan(plan.id) && plan.price !== 0 && showQRCodeModal(plan)"
+    :disabled="isCurrentPlan(plan.id) || plan.price === 0"
+  >
+    {{
+      isCurrentPlan(plan.id)
+        ? "Đang sử dụng"
+        : `${formatPrice(plan.price)} đ`
+    }}
+  </button>
+</template>
+
       </div>
     </div>
+    <!-- QR Code Modal -->
+    <div v-if="showQRModal" class="qr-modal">
+  <div class="qr-modal-content">
+    <span class="close" @click="showQRModal = false">&times;</span>
+    <div class="qr-modal-body">
+      <!-- Left side: QR Image and instructions -->
+      <div class="qr-image-container">
+        <img :src="selectedPlan.qrImage" alt="QR Code" class="qr-image" />
+        <div class="qr-instructions">
+  <p>
+    <span style="color: black;">NỘI DUNG: </span>
+    <span style="color: red;">TÊN GÓI - EMAIL</span>
+  </p>
+  <p>Ví dụ: {{ selectedPlan.name }} - nguyenvana@gmail.com</p>
+  <p style="color: red;">*Lưu ý: Giao dịch chỉ được coi là hợp lệ nếu điền thông tin nội dung giao dịch đầy đủ.</p>
+</div>
+
+      </div>
+
+      <!-- Right side: Plan Information -->
+      <div class="qr-info">
+        <h1>{{ selectedPlan.name }}</h1>
+        <p>Price: {{ formatPrice(selectedPlan.price) }} đ</p>
+        <p style="font-weight: bold;">Features:</p>
+        <ul>
+          <li v-if="selectedPlan.hasLikeLimit">Thích không giới hạn</li>
+          <li v-if="selectedPlan.hasWatchLike">Xem ai Thích bạn</li>
+          <li v-if="selectedPlan.hasShowPriority">Lượt Thích ưu tiên</li>
+          <li v-if="selectedPlan.hasViewProfile">Xem hồ sơ</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
   </div>
 </template>
 
@@ -98,14 +131,16 @@ import { getAllSubscriptionPlans } from "@/services/package-service.js";
 import { getCurrentSubscriptionPlan } from "@/services/user-subscription-service";
 
 export default {
+  components: {
+    LoveBellSidebar,
+  },
   data() {
     return {
       subscriptionPlans: [],
       currentSubscription: null,
+      showQRModal: false, // Controls QR modal visibility
+      selectedPlan: null, // Holds the selected plan data for the modal
     };
-  },
-  components: {
-    LoveBellSidebar,
   },
   mounted() {
     this.fetchSubscriptionPlans();
@@ -117,9 +152,10 @@ export default {
         const plans = await getAllSubscriptionPlans();
         this.subscriptionPlans = plans.map((plan, index) => ({
           ...plan,
-          id: plan.planId, // Ensure this key matches currentSubscription's planId
-          buttonClass: ["pink", "gold", "black"][index], // Classes for buttons based on index
-          headerClass: ["plus-header", "gold-header", "platinum-header"][index], // Classes for headers based on index
+          id: plan.planId,
+          buttonClass: ["pink", "gold", "black"][index],
+          headerClass: ["plus-header", "gold-header", "platinum-header"][index],
+          qrImage: `/qrcode/${plan.planId}.jpg`, // Đường dẫn đến ảnh QR cho mỗi gói
         }));
       } catch (error) {
         console.error("Error fetching subscription plans:", error);
@@ -129,24 +165,24 @@ export default {
       try {
         const currentSubscription = await getCurrentSubscriptionPlan();
         this.currentSubscription = currentSubscription;
-        console.log("Current subscription loaded:", this.currentSubscription); // Debugging line
       } catch (error) {
         console.error("Error fetching current subscription:", error);
       }
     },
     isCurrentPlan(planId) {
-      // Convert both planId and currentSubscription.planId to numbers for comparison
-      return (
-        this.currentSubscription &&
-        Number(this.currentSubscription.planId) === Number(planId)
-      );
+      return this.currentSubscription && Number(this.currentSubscription.planId) === Number(planId);
     },
     formatPrice(price) {
       return new Intl.NumberFormat("vi-VN").format(price);
     },
+    showQRCodeModal(plan) {
+      this.selectedPlan = plan;
+      this.showQRModal = true;
+    },
   },
 };
 </script>
+
 
 <style scoped>
 .layout-container {
@@ -321,4 +357,80 @@ export default {
     transform: translateX(0);
   }
 }
+/* QR Modal */
+.qr-modal {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.qr-modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  width: 1000px;
+  max-width: 90%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.qr-modal-body {
+  display: flex;
+  align-items: flex-start;
+}
+
+.qr-image-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.qr-image {
+  width: 400px;
+  height: 400px;
+  margin-bottom: 10px;
+}
+
+.qr-instructions {
+  text-align: center;
+  font-weight: bold;
+}
+
+.qr-info {
+  flex: 1;
+  margin-top: 90px;
+}
+
+.qr-info h1 {
+  margin-top: 0;
+  font-size: 24px; /* Tăng kích thước chữ */
+  font-weight: bold;
+}
+.qr-info p,
+.qr-info ul {
+  font-size: 22px; /* Tăng kích thước chữ cho phần mô tả */
+  line-height: 1.5;
+}
+.qr-info ul {
+  padding-left: 20px;
+  list-style-type: disc;
+}
+
 </style>
