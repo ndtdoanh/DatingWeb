@@ -35,8 +35,11 @@
             </div>
           </div>
         </div>
-        <br/> <br/> <br/> <br/> 
-        <button class="outer-border" @click="showLikedByModal = true">
+        <br />
+        <br />
+        <br />
+        <br />
+        <button class="outer-border" @click="handleWhoLikedClick()">
           <div class="animated-text">Who's Like?</div>
         </button>
       </aside>
@@ -69,11 +72,13 @@
             </button>
             <!-- Hiển thị tất cả ảnh trong danh sách -->
             <!-- Hiển thị một ảnh dựa vào currentPhotoIndex -->
-      <img
-        :src="getAuthorizedImageUrl(currentProfile.photos[currentPhotoIndex])"
-        alt="Profile Image"
-        class="profile-image-card"
-      />
+            <img
+              :src="
+                getAuthorizedImageUrl(currentProfile.photos[currentPhotoIndex])
+              "
+              alt="Profile Image"
+              class="profile-image-card"
+            />
             <!-- Nút "Next" để di chuyển đến ảnh tiếp theo -->
             <button
               v-if="currentProfile.photos.length > 1"
@@ -119,7 +124,8 @@
           <button class="close-button" @click="closeModal">
             <i class="fas fa-times"></i>
           </button>
-          
+          <h2>{{ currentProfile.name }} - {{ currentProfile.age }}</h2>
+          <p>{{ currentProfile.bio }}</p>
           <div
             class="images-wrapper"
             v-if="currentProfile"
@@ -137,8 +143,6 @@
               alt="Profile Image"
               class="profile-image"
             />
-            <h2>{{ currentProfile.name }} - {{ currentProfile.age }}</h2>
-          <p>{{ currentProfile.bio }}</p>
             <div class="like-dislike-text" v-if="showLike">LIKE</div>
             <div class="like-dislike-text" v-if="showDislike">DISLIKE</div>
           </div>
@@ -155,8 +159,12 @@
           </div>
         </div>
       </div>
-       <!-- LikedBy Modal -->
-       <div v-if="showLikedByModal" class="modal-overlay" @click="closeLikedByModal">
+      <!-- LikedBy Modal -->
+      <div
+        v-if="showLikedByModal"
+        class="modal-overlay"
+        @click="closeLikedByModal"
+      >
         <div class="modal-content" @click.stop>
           <likedBy @close="closeLikedByModal" />
         </div>
@@ -171,6 +179,8 @@ import { getMatchesForUser } from "@/services/match-service";
 import { loadRandomProfile } from "@/services/profile-service";
 import { swipeAction } from "@/services/swipe-service";
 import likedBy from "@/views/LikedBy.vue";
+import { getAllSubscriptionPlans } from "@/services/package-service";
+import {getCurrentSubscriptionPlan} from"@/services/user-subscription-service"
 
 export default {
   name: "App",
@@ -192,12 +202,12 @@ export default {
       matches: [], // Dữ liệu các hồ sơ
       profileImageUrl: null, // Thêm biến này để lưu URL của ảnh profile
       showInfo: false, // Biến để kiểm soát hiển thị modal
-      currentPhotoIndex: 0, 
+      currentPhotoIndex: 0,
       showLikedByModal: false,
-      
+      currentSubscription: null,
     };
   },
-  
+
   methods: {
     async loadMatches() {
       try {
@@ -212,6 +222,7 @@ export default {
     async loadProfiles() {
       try {
         const profileData = await loadRandomProfile();
+        console.log("🚀 ~ loadProfiles ~ profileData:", profileData)
 
         if (profileData.length > 0) {
           this.profiles = [...profileData]; // Use the spread operator to ensure a new array is created
@@ -226,7 +237,27 @@ export default {
         console.error("Failed to load profiles:", error);
       }
     },
-
+    async loadCurrentSubscription() {
+      try {
+        const currentUserSubscription = await getCurrentSubscriptionPlan();
+        // Giả sử API trả về danh sách các gói và gói hiện tại của người dùng có isCurrent: true
+        this.currentSubscription = currentUserSubscription
+      } catch (error) {
+        console.error("Error fetching subscription plan:", error.message);
+      }
+    },
+    async handleWhoLikedClick() {
+      
+      console.log("🚀 ~ handleWhoLikedClick ~ this.currentSubscription:", this.currentSubscription)
+      if ( this.currentSubscription.planId === 1) {
+       
+        console.log("Redirecting to /packagePremiumPage");
+        this.$router.push({ path: "/packagePremiumPage" });
+      } else {
+        console.log("Opening likedBy modal");
+        this.showLikedByModal = true;
+      }
+    },
     async nextProfile() {
       this.currentProfileVisible = false;
 
@@ -263,7 +294,7 @@ export default {
         query: { id: match.targetUserId },
       });
     },
-    
+
     nextPhoto() {
       // Kiểm tra nếu có nhiều ảnh, chuyển sang ảnh tiếp theo
       if (this.currentProfile.photos && this.currentProfile.photos.length > 1) {
@@ -376,7 +407,7 @@ export default {
     closeLikedByModal() {
       this.showLikedByModal = false;
     },
-    
+
     getRandomDistance() {
       return Math.floor(Math.random() * 10) + 1;
     },
@@ -384,17 +415,68 @@ export default {
   async mounted() {
     await this.loadMatches(); // Tải danh sách matches khi component được mounted
     await this.loadProfiles(); // Gọi API khi component được mounted
+    await this.loadCurrentSubscription();
   },
 };
 </script>
 
 <style scoped>
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 80%;
+  height: 90vh;
+  overflow-y: auto;
+}
 /* Main Layout */
+.outer-border {
+  display: inline-block;
+  padding: 20px;
+  border: 2px solid red;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ff70a1, #ff4081);
+  cursor: pointer;
+  outline: none;
+  border: none;
+}
+
+.animated-text {
+  font-size: 48px;
+  font-weight: bold;
+  text-align: center;
+  animation: scaleText 2s infinite ease-in-out;
+}
+
+@keyframes scaleText {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
 .main-layout {
   display: flex;
   height: calc(100vh - 56px);
 }
 
+/* Sidebar */
 .sidebarMatch {
   width: 30%;
   background-color: #f6f6f6;
@@ -453,16 +535,16 @@ export default {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Profile Section - Main and Modal Styling */
-.profile-section, .modal-content.full-image-modal {
+/* Profile Section */
+.profile-section {
+  width: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 50%;
   padding-left: 20px;
 }
 
-.profile-card, .modal-content.full-image-modal {
+.profile-card {
   width: 550px;
   text-align: center;
   border-radius: 20px;
@@ -471,17 +553,14 @@ export default {
   position: relative;
   transition: transform 0.5s ease, opacity 0.5s ease;
   animation: fadeInUp 0.8s ease-in-out;
-  background-color: #fff;
 }
 
-/* Image styling for profile and modal */
-.profile-image-card, .profile-image {
+.profile-image-card {
   width: 450px;
   height: 500px;
   border-radius: 10px;
   object-fit: cover;
   animation: zoomIn 0.6s ease;
-  margin-bottom: 15px;
 }
 
 .profile-info {
@@ -492,17 +571,18 @@ export default {
 .profile-header-name {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-between; /* Align elements to ends */
+  margin-bottom: 10px;
 }
 
 .profile-header-name h2 {
   margin: 0;
-  flex: 1;
+  flex: 1; /* Allow h2 to take available space */
   text-align: left;
 }
 
 .profile-kilometer {
-  margin-left: 15px;
+  margin-left: 15px; /* Add space between name and button */
 }
 
 .info-button {
@@ -522,35 +602,6 @@ export default {
   transform: scale(0.95);
 }
 
-/* Outer button styling */
-.outer-border {
-  display: inline-block;
-  padding: 20px;
-  border: 2px solid red;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #ff70a1, #ff4081);
-  cursor: pointer;
-  outline: none;
-  border: none;
-}
-
-.animated-text {
-  font-size: 48px;
-  font-weight: bold;
-  text-align: center;
-  animation: scaleText 2s infinite ease-in-out;
-}
-
-@keyframes scaleText {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-/* Photo navigation buttons */
 .back-photo-button,
 .next-photo-button {
   position: absolute;
@@ -562,6 +613,7 @@ export default {
   color: #ff6699;
   cursor: pointer;
   margin-top: 20px;
+  animation: none; /* Vô hiệu hóa mọi animation */
 }
 
 .back-photo-button {
@@ -574,8 +626,16 @@ export default {
   top: 270px;
 }
 
+.profile-image-card {
+  width: 400px;
+  height: 500px;
+  border-radius: 10px;
+  object-fit: cover;
+  margin-bottom: 15px;
+}
+
 /* Action Buttons */
-.action-buttons, .action-buttons-modal {
+.action-buttons {
   display: flex;
   justify-content: center;
   gap: 20px;
@@ -584,6 +644,7 @@ export default {
 }
 
 .button {
+  position: relative;
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -598,15 +659,15 @@ export default {
 }
 
 .dislike-button {
-  background-color: #ff5a5f;
+  background-color: #ff5a5f; /* Red color */
 }
 
 .super-like-button {
-  background-color: #3498db;
+  background-color: #3498db; /* Blue color */
 }
 
 .like-button {
-  background-color: #2ecc71;
+  background-color: #2ecc71; /* Green color */
 }
 
 .button:hover {
@@ -620,7 +681,7 @@ export default {
 
 .button i {
   font-size: 1.5rem;
-  color: white;
+  color: white; /* Set icon color to white */
 }
 
 /* Swipe effect classes */
@@ -636,7 +697,7 @@ export default {
   animation: swipeRightAnimation 0.5s ease forwards;
 }
 
-/* Modal Overlay for Liked By */
+/* Modal Overlay */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -651,13 +712,16 @@ export default {
   animation: fadeIn 0.5s ease;
 }
 
+/* Modal Content */
 .modal-content {
   background: white;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 80%;
-  height: 90vh;
-  overflow-y: auto;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  max-width: 700px;
+  width: 100%;
+  animation: slideInUp 0.5s ease-out;
 }
 
 /* Close Button */
@@ -670,14 +734,13 @@ export default {
   cursor: pointer;
   font-size: 1.5rem;
   transition: transform 0.2s;
-  color: #333;
 }
 
 .close-button:hover {
   transform: scale(1.2) rotate(90deg);
 }
 
-/* Animations */
+/* CSS Keyframes Animations */
 @keyframes swipeLeftAnimation {
   0% {
     opacity: 1;
@@ -731,6 +794,17 @@ export default {
   }
 }
 
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 @keyframes zoomIn {
   from {
     transform: scale(0.5);
@@ -739,6 +813,20 @@ export default {
   to {
     transform: scale(1);
     opacity: 1;
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
   }
 }
 
@@ -753,4 +841,3 @@ export default {
   }
 }
 </style>
-
