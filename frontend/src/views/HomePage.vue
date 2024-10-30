@@ -119,8 +119,7 @@
           <button class="close-button" @click="closeModal">
             <i class="fas fa-times"></i>
           </button>
-          <h2>{{ currentProfile.name }} - {{ currentProfile.age }}</h2>
-          <p>{{ currentProfile.bio }}</p>
+          
           <div
             class="images-wrapper"
             v-if="currentProfile"
@@ -138,6 +137,8 @@
               alt="Profile Image"
               class="profile-image"
             />
+            <h2>{{ currentProfile.name }} - {{ currentProfile.age }}</h2>
+          <p>{{ currentProfile.bio }}</p>
             <div class="like-dislike-text" v-if="showLike">LIKE</div>
             <div class="like-dislike-text" v-if="showDislike">DISLIKE</div>
           </div>
@@ -388,71 +389,21 @@ export default {
 </script>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 80%;
-  height: 90vh;
-  overflow-y: auto;
-}
 /* Main Layout */
-.outer-border {
-  display: inline-block;
-  padding: 20px;
-  border: 2px solid red; 
-  border-radius: 8px; 
-  background: linear-gradient(135deg, #ff70a1, #ff4081); 
-  cursor: pointer; 
-  outline: none;
-  border: none;
-}
-
-.animated-text {
-  font-size: 48px;
-  font-weight: bold;
-  text-align: center;
-  animation: scaleText 2s infinite ease-in-out;
-}
-
-@keyframes scaleText {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-
 .main-layout {
   display: flex;
   height: calc(100vh - 56px);
 }
 
-  /* Sidebar */
-  .sidebarMatch {
-    width: 30%;
-    background-color: #f6f6f6;
-    border-right: 1px solid #e0e0e0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    animation: slideInLeft 0.6s ease-out;
-  }
+.sidebarMatch {
+  width: 30%;
+  background-color: #f6f6f6;
+  border-right: 1px solid #e0e0e0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  animation: slideInLeft 0.6s ease-out;
+}
 
 .sidebar-header {
   text-align: center;
@@ -502,16 +453,16 @@ export default {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Profile Section */
-.profile-section {
-  width: 50%;
+/* Profile Section - Main and Modal Styling */
+.profile-section, .modal-content.full-image-modal {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 50%;
   padding-left: 20px;
 }
 
-.profile-card {
+.profile-card, .modal-content.full-image-modal {
   width: 550px;
   text-align: center;
   border-radius: 20px;
@@ -520,14 +471,17 @@ export default {
   position: relative;
   transition: transform 0.5s ease, opacity 0.5s ease;
   animation: fadeInUp 0.8s ease-in-out;
+  background-color: #fff;
 }
 
-.profile-image-card {
+/* Image styling for profile and modal */
+.profile-image-card, .profile-image {
   width: 450px;
   height: 500px;
   border-radius: 10px;
   object-fit: cover;
   animation: zoomIn 0.6s ease;
+  margin-bottom: 15px;
 }
 
 .profile-info {
@@ -538,18 +492,17 @@ export default {
 .profile-header-name {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* Align elements to ends */
-  margin-bottom: 10px;
+  justify-content: space-between;
 }
 
 .profile-header-name h2 {
   margin: 0;
-  flex: 1; /* Allow h2 to take available space */
+  flex: 1;
   text-align: left;
 }
 
 .profile-kilometer {
-  margin-left: 15px; /* Add space between name and button */
+  margin-left: 15px;
 }
 
 .info-button {
@@ -569,7 +522,36 @@ export default {
   transform: scale(0.95);
 }
 
-  .back-photo-button,
+/* Outer button styling */
+.outer-border {
+  display: inline-block;
+  padding: 20px;
+  border: 2px solid red;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ff70a1, #ff4081);
+  cursor: pointer;
+  outline: none;
+  border: none;
+}
+
+.animated-text {
+  font-size: 48px;
+  font-weight: bold;
+  text-align: center;
+  animation: scaleText 2s infinite ease-in-out;
+}
+
+@keyframes scaleText {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Photo navigation buttons */
+.back-photo-button,
 .next-photo-button {
   position: absolute;
   top: 50%;
@@ -580,38 +562,28 @@ export default {
   color: #ff6699;
   cursor: pointer;
   margin-top: 20px;
-  animation: none; /* Vô hiệu hóa mọi animation */
 }
 
-  .back-photo-button {
-    left: 5px;
-    top: 270px;
-  }
+.back-photo-button {
+  left: 5px;
+  top: 270px;
+}
 
-  .next-photo-button {
-    right: 5px;
-    top: 270px;
-  }
+.next-photo-button {
+  right: 5px;
+  top: 270px;
+}
 
-  .profile-image-card {
-    width: 400px;
-    height: 500px;
-    border-radius: 10px;
-    object-fit: cover;
-    margin-bottom: 15px;
-  }
-
-  /* Action Buttons */
-  .action-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 20px;
-    width: 100%;
-  }
+/* Action Buttons */
+.action-buttons, .action-buttons-modal {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+  width: 100%;
+}
 
 .button {
-  position: relative;
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -626,15 +598,15 @@ export default {
 }
 
 .dislike-button {
-  background-color: #ff5a5f; /* Red color */
+  background-color: #ff5a5f;
 }
 
 .super-like-button {
-  background-color: #3498db; /* Blue color */
+  background-color: #3498db;
 }
 
 .like-button {
-  background-color: #2ecc71; /* Green color */
+  background-color: #2ecc71;
 }
 
 .button:hover {
@@ -648,7 +620,7 @@ export default {
 
 .button i {
   font-size: 1.5rem;
-  color: white; /* Set icon color to white */
+  color: white;
 }
 
 /* Swipe effect classes */
@@ -664,7 +636,7 @@ export default {
   animation: swipeRightAnimation 0.5s ease forwards;
 }
 
-/* Modal Overlay */
+/* Modal Overlay for Liked By */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -679,16 +651,13 @@ export default {
   animation: fadeIn 0.5s ease;
 }
 
-/* Modal Content */
 .modal-content {
   background: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-  position: relative;
-  max-width: 700px;
-  width: 100%;
-  animation: slideInUp 0.5s ease-out;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 80%;
+  height: 90vh;
+  overflow-y: auto;
 }
 
 /* Close Button */
@@ -701,13 +670,14 @@ export default {
   cursor: pointer;
   font-size: 1.5rem;
   transition: transform 0.2s;
+  color: #333;
 }
 
 .close-button:hover {
   transform: scale(1.2) rotate(90deg);
 }
 
-/* CSS Keyframes Animations */
+/* Animations */
 @keyframes swipeLeftAnimation {
   0% {
     opacity: 1;
@@ -761,17 +731,6 @@ export default {
   }
 }
 
-@keyframes slideInUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
 @keyframes zoomIn {
   from {
     transform: scale(0.5);
@@ -780,20 +739,6 @@ export default {
   to {
     transform: scale(1);
     opacity: 1;
-  }
-}
-
-@keyframes bounceIn {
-  0% {
-    transform: scale(0.5);
-    opacity: 0;
-  }
-  60% {
-    transform: scale(1.1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
   }
 }
 
@@ -808,3 +753,4 @@ export default {
   }
 }
 </style>
+

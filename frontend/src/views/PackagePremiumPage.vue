@@ -72,56 +72,65 @@
         <!-- Pricing Row -->
         <div></div>
         <template v-for="(plan, index) in subscriptionPlans" :key="index">
-  <button
-    :class="['price-button', plan.buttonClass, isCurrentPlan(plan.id) ? 'in-use-button' : '']"
-    @click="!isCurrentPlan(plan.id) && plan.price !== 0 && showQRCodeModal(plan)"
-    :disabled="isCurrentPlan(plan.id) || plan.price === 0"
-  >
-    {{
-      isCurrentPlan(plan.id)
-        ? "Đang sử dụng"
-        : `${formatPrice(plan.price)} đ`
-    }}
-  </button>
-</template>
-
+          <button
+            :class="[
+              'price-button',
+              plan.buttonClass,
+              isCurrentPlan(plan.id) ? 'in-use-button' : '',
+            ]"
+            @click="
+              !isCurrentPlan(plan.id) &&
+                plan.price !== 0 &&
+                showQRCodeModal(plan)
+            "
+            :disabled="isCurrentPlan(plan.id) || plan.price === 0"
+          >
+            {{
+              isCurrentPlan(plan.id)
+                ? "Đang sử dụng"
+                : `${formatPrice(plan.price)} đ`
+            }}
+          </button>
+        </template>
       </div>
     </div>
     <!-- QR Code Modal -->
     <div v-if="showQRModal" class="qr-modal">
-  <div class="qr-modal-content">
-    <span class="close" @click="showQRModal = false">&times;</span>
-    <div class="qr-modal-body">
-      <!-- Left side: QR Image and instructions -->
-      <div class="qr-image-container">
-        <img :src="selectedPlan.qrImage" alt="QR Code" class="qr-image" />
-        <div class="qr-instructions">
-  <p>
-    <span style="color: black;">NỘI DUNG: </span>
-    <span style="color: red;">TÊN GÓI - EMAIL</span>
-  </p>
-  <p>Ví dụ: {{ selectedPlan.name }} - nguyenvana@gmail.com</p>
-  <p style="color: red;">*Lưu ý: Giao dịch chỉ được coi là hợp lệ nếu điền thông tin nội dung giao dịch đầy đủ.</p>
-</div>
+      <div class="qr-modal-content">
+        <span class="close" @click="showQRModal = false">&times;</span>
+        <div class="qr-modal-body">
+          <!-- Left side: QR Image and instructions -->
+          <div class="qr-image-container">
+            <img :src="selectedPlan.qrImage" alt="QR Code" class="qr-image" />
+            <div class="qr-instructions">
+              <p>
+                <span style="color: black">NỘI DUNG: </span>
+                <span style="color: red">TÊN GÓI - EMAIL</span>
+              </p>
+              <p>Ví dụ: {{ selectedPlan.name }} - nguyenvana@gmail.com</p>
+              <p style="color: red">
+                *Lưu ý: Giao dịch chỉ được coi là hợp lệ nếu điền thông tin nội
+                dung giao dịch đầy đủ.
+              </p>
+            </div>
+          </div>
 
-      </div>
-
-      <!-- Right side: Plan Information -->
-      <div class="qr-info">
-        <h1>{{ selectedPlan.name }}</h1>
-        <p>Price: {{ formatPrice(selectedPlan.price) }} đ</p>
-        <p style="font-weight: bold;">Features:</p>
-        <ul>
-          <li v-if="selectedPlan.hasLikeLimit">Thích không giới hạn</li>
-          <li v-if="selectedPlan.hasWatchLike">Xem ai Thích bạn</li>
-          <li v-if="selectedPlan.hasShowPriority">Lượt Thích ưu tiên</li>
-          <li v-if="selectedPlan.hasViewProfile">Xem hồ sơ</li>
-        </ul>
+          <!-- Right side: Plan Information -->
+          <div class="qr-info">
+            <h1>{{ selectedPlan.name }}</h1>
+            <p>Price: {{ formatPrice(selectedPlan.price) }} đ</p>
+            <p style="font-weight: bold">Features:</p>
+            <ul>
+              <li v-if="selectedPlan.hasLikeLimit">Thích không giới hạn</li>
+              <li v-if="selectedPlan.hasWatchLike">Xem ai Thích bạn</li>
+              <li v-if="selectedPlan.hasShowPriority">Lượt Thích ưu tiên</li>
+              <li v-if="selectedPlan.hasViewProfile">Xem hồ sơ</li>
+            </ul>
+          </div>
+        </div>
+        <p style="text-align: center; margin-top: 20px;">Sau khi thanh toán 5 - 10p, tài khoản của bạn sẽ được cập nhật trạng thái gói mới. Cảm ơn bạn đã lựa chọn</p>
       </div>
     </div>
-  </div>
-</div>
-
   </div>
 </template>
 
@@ -170,7 +179,10 @@ export default {
       }
     },
     isCurrentPlan(planId) {
-      return this.currentSubscription && Number(this.currentSubscription.planId) === Number(planId);
+      return (
+        this.currentSubscription &&
+        Number(this.currentSubscription.planId) === Number(planId)
+      );
     },
     formatPrice(price) {
       return new Intl.NumberFormat("vi-VN").format(price);
@@ -182,7 +194,6 @@ export default {
   },
 };
 </script>
-
 
 <style scoped>
 .layout-container {
@@ -432,5 +443,4 @@ export default {
   padding-left: 20px;
   list-style-type: disc;
 }
-
 </style>

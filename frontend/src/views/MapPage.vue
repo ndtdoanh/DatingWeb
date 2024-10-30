@@ -425,7 +425,6 @@ export default {
 }
 
 /* Định dạng phần chi tiết người dùng */
-/* Định dạng phần chi tiết người dùng */
 .user-details {
   background-color: #f9f9f9;
   border: 1px solid #ccc;
