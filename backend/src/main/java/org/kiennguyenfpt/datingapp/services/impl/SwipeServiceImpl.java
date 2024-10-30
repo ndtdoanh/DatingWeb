@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SwipeServiceImpl implements SwipeService {
@@ -136,7 +137,17 @@ public class SwipeServiceImpl implements SwipeService {
             throw new AccessDeniedException("Users are not allowed to access the list of liked profiles!", null);
         }
 
-        return swipeRepository.findAllLikedProfilesExcludingCurrentUser(userId);
+        // Lấy danh sách các userId đã match với người dùng hiện tại
+        List<Long> matchedUserIds = matchService.getMatchesForUser(userId)
+                .stream()
+                .map(match -> match.getUser2().getUserId())
+                .collect(Collectors.toList());
+
+        // Lấy tất cả các profile đã like, trừ những profile đã match
+        return swipeRepository.findAllLikedProfilesExcludingCurrentUser(userId)
+                .stream()
+                .filter(profile -> !matchedUserIds.contains(profile.getUser().getUserId()))
+                .collect(Collectors.toList());
     }
 
 }
