@@ -23,8 +23,7 @@ public class DailySwipeResetTask {
         List<User> users = userRepository.findAll();
         users.forEach(user -> {
             user.setDailySwipeCount(0);
-            // Lấy ngày hiện tại + 1
-            user.setLastSwipeReset(LocalDate.now().plusDays(1));
+            user.setLastSwipeReset(LocalDate.now());
         });
         userRepository.saveAll(users);
     }
