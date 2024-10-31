@@ -309,6 +309,7 @@ export default {
   width: 100%;
   padding: 20px;
   font-size: 20px;
+  margin-left: 350px;
 }
 
 .liked-info h2 {
@@ -316,6 +317,7 @@ export default {
   font-weight: bold;
   font-size: 25px;
   padding-bottom: 10px;
+  text-align: left;
 }
 
 /* Action buttons styling */
