@@ -12,7 +12,11 @@ import lombok.Setter;
 public class LoginSuccessfulResponse {
     private String email;
 
+    private String name;
+
     private String token;
 
     private String role;
+
+    private String plan;
 }
