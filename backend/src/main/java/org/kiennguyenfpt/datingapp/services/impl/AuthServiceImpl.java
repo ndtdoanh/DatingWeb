@@ -1,11 +1,17 @@
 package org.kiennguyenfpt.datingapp.services.impl;
 
 import org.kiennguyenfpt.datingapp.dtos.responses.LoginSuccessfulResponse;
-import org.kiennguyenfpt.datingapp.entities.*;
+import org.kiennguyenfpt.datingapp.entities.Profile;
+import org.kiennguyenfpt.datingapp.entities.Role;
+import org.kiennguyenfpt.datingapp.entities.SubscriptionPlan;
+import org.kiennguyenfpt.datingapp.entities.User;
+import org.kiennguyenfpt.datingapp.entities.UserRole;
+import org.kiennguyenfpt.datingapp.entities.UserSubscription;
 import org.kiennguyenfpt.datingapp.enums.ROLE;
 import org.kiennguyenfpt.datingapp.enums.SubscriptionStatus;
 import org.kiennguyenfpt.datingapp.enums.UserStatus;
 import org.kiennguyenfpt.datingapp.exceptions.InvalidEmailException;
+import org.kiennguyenfpt.datingapp.repositories.ProfileRepository;
 import org.kiennguyenfpt.datingapp.repositories.RoleRepository;
 import org.kiennguyenfpt.datingapp.repositories.SubscriptionPlanRepository;
 import org.kiennguyenfpt.datingapp.repositories.UserRoleRepository;
@@ -26,6 +32,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 
 @Service
@@ -42,6 +49,8 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRoleRepository userRoleRepository;
 
+    private final ProfileRepository profileRepository;
+
     private final JwtUtil jwtUtil;
     private final SubscriptionPlanRepository subscriptionPlanRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
@@ -53,7 +62,10 @@ public class AuthServiceImpl implements AuthService {
             JwtUtil jwtUtil,
             RoleRepository roleRepository,
             UserRoleRepository userRoleRepository,
-            SubscriptionPlanRepository subscriptionPlanRepository, UserSubscriptionRepository userSubscriptionRepository) {
+            SubscriptionPlanRepository subscriptionPlanRepository,
+            UserSubscriptionRepository userSubscriptionRepository,
+            ProfileRepository profileRepository
+    ) {
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.userService = userService;
@@ -62,6 +74,7 @@ public class AuthServiceImpl implements AuthService {
         this.userRoleRepository = userRoleRepository;
         this.subscriptionPlanRepository = subscriptionPlanRepository;
         this.userSubscriptionRepository = userSubscriptionRepository;
+        this.profileRepository = profileRepository;
     }
 
     @Override
@@ -100,7 +113,8 @@ public class AuthServiceImpl implements AuthService {
         CommonResponse response = new CommonResponse<>();
         User user = userService.findByEmail(email);
         String message;
-
+        Profile profile = null;
+        Optional<UserSubscription> optionalUserSubscription = null;
         if (user.getStatus() == UserStatus.INACTIVE) {
             message = "User has been locked";
             response.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -111,7 +125,6 @@ public class AuthServiceImpl implements AuthService {
             String token = jwtUtil.generateToken(email, user.getUserId());
             logger.info("User logged in: {}", email);
 
-
             // Tạo thông điệp dựa trên số lần đăng nhập
             if (user.isFirstLogin()) {
                 user.setFirstLogin(false);
@@ -120,17 +133,22 @@ public class AuthServiceImpl implements AuthService {
                 message = "Second login";
             } else {
                 message = "Login successful";
+                profile = profileRepository.findByUser_UserId(user.getUserId());
+                optionalUserSubscription = userSubscriptionRepository.findActiveSubscriptionByUserId(user.getUserId());
             }
             user.setLoginCount(user.getLoginCount() + 1);
             userService.save(user);
-            
+
             response.setStatus(HttpStatus.OK.value());
             response.setMessage(message);
 
             LoginSuccessfulResponse successfulResponse = new LoginSuccessfulResponse(
                     user.getEmail(),
+                    profile != null ? profile.getName() : "-",
                     token,
-                    user.getUserRoles().get(0).getRole().getRoleName()
+                    user.getUserRoles().get(0).getRole().getRoleName(),
+                    (optionalUserSubscription != null && optionalUserSubscription.isPresent())
+                            ? optionalUserSubscription.get().getSubscriptionPlan().getName() : "FREE"
             );
 
             response.setData(successfulResponse);
