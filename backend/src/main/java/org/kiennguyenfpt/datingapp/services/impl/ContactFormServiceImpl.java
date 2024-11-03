@@ -1,5 +1,6 @@
 package org.kiennguyenfpt.datingapp.services.impl;
 
+import org.kiennguyenfpt.datingapp.dtos.requests.ContactUsRequest;
 import org.kiennguyenfpt.datingapp.entities.ContactForm;
 import org.kiennguyenfpt.datingapp.repositories.ContactFormRepository;
 import org.kiennguyenfpt.datingapp.services.ContactFormService;
@@ -53,4 +54,21 @@ public class ContactFormServiceImpl implements ContactFormService {
 
         emailService.sendEmail(email, subject, htmlContent);
     }
+
+    @Override
+    public void sendContactForm(ContactUsRequest contactUsRequest) {
+        // Tạo một entity ContactForm từ ContactUsRequest
+        ContactForm contactForm = new ContactForm();
+        contactForm.setFullName(contactUsRequest.getFullName());
+        contactForm.setEmail(contactUsRequest.getEmail());
+        contactForm.setPhoneNumber(contactUsRequest.getPhoneNumber());
+        contactForm.setMessage(contactUsRequest.getMessage());
+        contactForm.setSubmissionDate(LocalDateTime.now());
+        contactForm.setResponseStatus("Not Responded");
+
+        // Lưu contactForm vào database
+        contactFormRepository.save(contactForm);
+        System.out.println("Contact form has been successfully saved.");
+    }
+
 }
