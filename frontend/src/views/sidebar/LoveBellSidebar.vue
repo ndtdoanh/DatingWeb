@@ -96,7 +96,14 @@
         <i class="material-icons rotate" :class="{ active: showMoreOptions }"
           >menu</i
         >
-        <span>Xem thêm</span>
+        <span class="user-info">{{ name }}</span>
+        <el-tag
+            effect="dark"
+            :size="'small'"
+            :type="plan === 'FREE' ? 'info' : plan === 'TRIAL' ? 'warning' : 'success'"
+        >
+          {{ plan }}
+        </el-tag>
       </li>
 
       <!-- More Options Dropdown -->
@@ -145,7 +152,9 @@ export default {
   name: "LoveBellSidebar",
   data() {
     return {
-      showMoreOptions: false, // Trạng thái ẩn/hiện của danh sách "Xem thêm"
+      showMoreOptions: false, // Trạng thái ẩn/hiện của danh sách "Xem thêm",
+      name: localStorage.getItem("name") || "-",
+      plan: localStorage.getItem("plan") || "FREE",
     };
   },
   methods: {
@@ -228,7 +237,9 @@ export default {
   padding: 15px 20px;
   font-size: 20px;
   font-weight: bold;
-  display: block;
+  display: flex;
+  vertical-align: center;
+
   width: 30%;
   cursor: pointer;
   color: #000;
