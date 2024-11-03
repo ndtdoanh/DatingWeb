@@ -2,11 +2,13 @@ import { jwtDecode } from "jwt-decode"; // Import thư viện jwt-decode để g
 import { instance, Login } from "./api-instance-provider"; // Import `instance` để gọi API và `Login` cho URL
 
 // Hàm lưu token, email, role và userId vào localStorage
-const saveTokenAndUserInfo = (token, email, role) => {
+const saveTokenAndUserInfo = (token, email, role, name, plan) => {
   if (token) {
     localStorage.setItem("userToken", token);
     localStorage.setItem("email", email);
     localStorage.setItem("role", role);
+    localStorage.setItem("name", name);
+    localStorage.setItem("plan", plan);
 
     // Giải mã token để lấy userId
     const decodedToken = jwtDecode(token);
@@ -29,10 +31,10 @@ export const loginUser = async (email, password) => {
 
     // Kiểm tra nếu đăng nhập thành công
     if (status === 200) {
-      const { token, role } = data;
+      const { token, role, name, plan } = data;
 
       // Lưu token và thông tin user vào localStorage
-      saveTokenAndUserInfo(token, email, role);
+      saveTokenAndUserInfo(token, email, role, name, plan);
 
       // Xử lý theo vai trò của người dùng
       if (role === "Admin") {
