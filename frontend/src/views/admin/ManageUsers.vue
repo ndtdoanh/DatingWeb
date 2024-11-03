@@ -7,7 +7,7 @@
           v-model="searchQuery"
           placeholder="Search by Email, Phone"
           style="width: 300px;"
-          @input="filterUsers"
+          @input="filteredUsers"
       >
         <template #prepend>
           <el-button :icon="Search" />
@@ -229,9 +229,19 @@ const openChangePackageDialog = (user) => {
 
 const changeUserPackage = async () => {
   const planId = selectedPackage.value;
+
+  if (planId === selectedUserForPackageChange.value.packageName) {
+    ElNotification({
+      title: 'Warning',
+      message: 'Please select another package type.',
+      type: 'warning',
+    });
+    return;
+  }
+
   try {
     await changeUserPackageAPI(selectedUserForPackageChange.value.userId, planId);
-    await fetchUsers(); // Cập nhật lại danh sách người dùng sau khi thay đổi gói
+    await fetchUsers();
     ElNotification({
       title: 'Success',
       message: 'Package changed successfully.',
