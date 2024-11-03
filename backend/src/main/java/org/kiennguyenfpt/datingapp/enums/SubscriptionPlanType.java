@@ -14,4 +14,13 @@ public enum SubscriptionPlanType {
         return this.value;
     }
 
+    public static SubscriptionPlanType fromValue(long value) {
+        for (SubscriptionPlanType planType : SubscriptionPlanType.values()) {
+            if (planType.value == value) {
+                return planType;
+            }
+        }
+        throw new IllegalArgumentException("No subscription plan type with value " + value);
+    }
+
 }
