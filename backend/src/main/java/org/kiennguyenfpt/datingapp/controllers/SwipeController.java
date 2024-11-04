@@ -1,6 +1,7 @@
 package org.kiennguyenfpt.datingapp.controllers;
 
 import org.kiennguyenfpt.datingapp.dtos.requests.SwipeRequest;
+import org.kiennguyenfpt.datingapp.dtos.responses.ProfileResponse;
 import org.kiennguyenfpt.datingapp.dtos.responses.SwipeResponse;
 import org.kiennguyenfpt.datingapp.entities.Profile;
 import org.kiennguyenfpt.datingapp.exceptions.AccessDeniedException;
@@ -111,8 +112,8 @@ public class SwipeController {
 
 
     @GetMapping("/likedMe")
-    public ResponseEntity<CommonResponse<List<Profile>>> getAllLikedProfilesExcludingCurrentUser(Authentication authentication) {
-        CommonResponse<List<Profile>> response = new CommonResponse<>();
+    public ResponseEntity<CommonResponse<List<ProfileResponse>>> getAllLikedProfilesExcludingCurrentUser(Authentication authentication) {
+        CommonResponse<List<ProfileResponse>> response = new CommonResponse<>();
         try {
             // Lấy email từ Authentication
             String email = authentication.getName();
@@ -121,7 +122,7 @@ public class SwipeController {
             Long userId = userService.findByEmail(email).getUserId();
 
             // Lấy danh sách các profile đã thích ngoại trừ user hiện tại
-            List<Profile> profiles = swipeService.getAllLikedProfilesExcludingCurrentUser(userId);
+            List<ProfileResponse> profiles = swipeService.getAllLikedProfilesExcludingCurrentUser(userId);
             response.setStatus(HttpStatus.OK.value());
             response.setMessage("Get list of liked successfully!");
             response.setData(profiles);

@@ -1,6 +1,7 @@
 package org.kiennguyenfpt.datingapp.services.impl;
 
 import jakarta.transaction.Transactional;
+import org.kiennguyenfpt.datingapp.dtos.responses.ProfileResponse;
 import org.kiennguyenfpt.datingapp.dtos.responses.SwipeResponse;
 import org.kiennguyenfpt.datingapp.entities.Like;
 import org.kiennguyenfpt.datingapp.entities.Swipe;
@@ -124,7 +125,7 @@ public class SwipeServiceImpl implements SwipeService {
 
 
     @Override
-    public List<Profile> getAllLikedProfilesExcludingCurrentUser(Long userId) throws AccessDeniedException {
+    public List<ProfileResponse> getAllLikedProfilesExcludingCurrentUser(Long userId) throws AccessDeniedException {
         // Lấy hồ sơ của người dùng hiện tại dựa trên userId
         Profile currentUserProfile = profileRepository.findByUser_UserId(userId);
         if (currentUserProfile == null) {
@@ -147,6 +148,7 @@ public class SwipeServiceImpl implements SwipeService {
         return swipeRepository.findAllLikedProfilesExcludingCurrentUser(userId)
                 .stream()
                 .filter(profile -> !matchedUserIds.contains(profile.getUser().getUserId()))
+                .map(ProfileResponse::new)
                 .collect(Collectors.toList());
     }
 
